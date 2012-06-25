@@ -1,8 +1,8 @@
 /* ---------------------------------------------------------------------------
 ** Author: Martin Geier
-** regextools.h is part of ProcessExecutor.
+** regextools.h is part of RegexTools.
 **
-** ProcessExecutor is free software: you can redistribute it and/or modify
+** RegexTools is free software: you can redistribute it and/or modify
 ** it under the terms of the GNU General Public License as published by
 ** the Free Software Foundation, either version 3 of the License, or
 ** (at your option) any later version.
@@ -45,8 +45,8 @@ private:
 	regmatch_t *groups;
 	std::string text;
 	unsigned int numberOfGroups;
-	unsigned int lastPosition;
-	unsigned int backPosition;
+	unsigned long int lastPosition;
+	unsigned long int backPosition;
 };
 
 class Regex {
@@ -59,7 +59,6 @@ public:
 private:
 	regex_t regex;
 	std::string text;
-	std::string::size_type position;
 };
 
 }
