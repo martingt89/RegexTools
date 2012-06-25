@@ -28,26 +28,35 @@ Regex::Regex(const std::string& expression, const bool caseIgnore) throw (RegexE
 	if (int st = regcomp(&regex, expression.c_str(), flags|REG_EXTENDED) != 0){
 		char buffer[100];
 		size_t len = regerror(st, &regex, buffer, 100);
-		throw RegexException(std::string("Cannot compile regex: ")+expression+" "+std::string(buffer, len));
+		throw RegexException(std::string("Regcomp error: ")+std::string(buffer, len)+", regex: "+expression);
 	}
 }
 
 Regex::~Regex() {
 	regfree(&regex);
 }
-bool Regex::search(const std::string& text){
+bool Regex::search(const std::string& text) throw (RegexException){
 	std::string::size_type x, y;
-	return this->search(text, x, y);
-}
-bool Regex::search(const std::string& text, std::string::size_type &start, std::string::size_type &end){
-	regmatch_t pmatch[1];
-	int error= regexec(&regex, text.c_str(), 1, pmatch, 0);
-	if(!error){
-		start = pmatch[0].rm_so;
-		end = pmatch[0].rm_eo;
-		return true;
+	try{
+		return this->search(text, x, y);
+	}catch(RegexException &ex){
+		throw ex;
 	}
 	return false;
+}
+bool Regex::search(const std::string& text, std::string::size_type &start,
+		std::string::size_type &end) throw (RegexException){
+	regmatch_t pmatch[1];
+	int error= regexec(&regex, text.c_str(), 1, pmatch, 0);
+	if(error){
+		if(error == REG_NOMATCH) return false;
+		char buffer[100];
+		size_t len = regerror(error, &regex, buffer, 100);
+		throw RegexException("Regexec error: "+std::string(buffer, len));
+	}
+	start = pmatch[0].rm_so;
+	end = pmatch[0].rm_eo;
+	return true;
 }
 Matcher Regex::getMatcher(std::string text){
 	return Matcher(text, this->regex);

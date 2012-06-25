@@ -51,10 +51,12 @@ private:
 
 class Regex {
 public:
-	Regex(const std::string& expression, const bool caseIgnor = false) throw (RegexException);
+	Regex(const std::string& expression, const bool caseIgnor = false)
+			throw (RegexException);
 	virtual ~Regex();
-	bool search(const std::string& text, std::string::size_type &start, std::string::size_type &end);
-	bool search(const std::string& text);
+	bool search(const std::string& text, std::string::size_type &start,
+			std::string::size_type &end) throw (RegexException);
+	bool search(const std::string& text) throw (RegexException);
 	Matcher getMatcher(std::string text);
 private:
 	regex_t regex;
