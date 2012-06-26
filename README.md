@@ -33,7 +33,7 @@ class Matcher
 		bool Matcher::find()
 			true if match regular expresion in text after last text match
 		
-		std::string Matcher::getGroup(unsigned int number)
+		std::string Matcher::getGroup(unsigned int number) const
 			if find return true - getGroup return groupe with number "number"
 			
 class RegexException
