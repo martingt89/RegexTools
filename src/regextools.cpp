@@ -17,7 +17,6 @@
 ** -------------------------------------------------------------------------*/
 
 #include "regextools.h"
-#include <cstdlib>
 
 namespace RegexTools{
 
@@ -84,7 +83,7 @@ bool Matcher::find(){
 	}
 	return false;
 }
-std::string Matcher::getGroup(unsigned int number){
+std::string Matcher::getGroup(unsigned int number) const{
 	if(number >= numberOfGroups){
 		return "";
 	}
