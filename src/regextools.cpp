@@ -17,6 +17,7 @@
 ** -------------------------------------------------------------------------*/
 
 #include "regextools.h"
+#include <cstdlib>
 
 namespace RegexTools{
 
