@@ -27,19 +27,19 @@ namespace RegexTools{
 
 class RegexException : std::exception{
 public:
-	RegexException(std::string message);
+	RegexException(const std::string& message);
 	virtual ~RegexException() throw ();
-	virtual std::string what();
+	virtual const char* what() const throw ();
 private:
 	std::string message;
 };
 
 class Matcher{
 public:
-	Matcher (std::string text, regex_t regex);	//Don't use constructor manualy -> call RegexTools::getMatcher
+	Matcher (const std::string& text, const regex_t& regex);	//Don't use constructor manualy -> call RegexTools::getMatcher
 	~Matcher();
 	bool find();
-	std::string getGroup(unsigned int number) const;
+	std::string getGroup(const unsigned int& number) const;
 private:
 	regex_t regex;
 	regmatch_t *groups;
@@ -55,9 +55,9 @@ public:
 			throw (RegexException);
 	virtual ~Regex();
 	bool search(const std::string& text, std::string::size_type &start,
-			std::string::size_type &end) throw (RegexException);
-	bool search(const std::string& text) throw (RegexException);
-	Matcher getMatcher(std::string text);
+			std::string::size_type &end) const throw (RegexException);
+	bool search(const std::string& text) const throw (RegexException);
+	Matcher getMatcher(const std::string& text) const;
 private:
 	regex_t regex;
 	std::string text;

@@ -36,7 +36,7 @@ Regex::Regex(const std::string& expression, const bool caseIgnore) throw (RegexE
 Regex::~Regex() {
 	regfree(&regex);
 }
-bool Regex::search(const std::string& text) throw (RegexException){
+bool Regex::search(const std::string& text) const throw (RegexException){
 	std::string::size_type x, y;
 	try{
 		return this->search(text, x, y);
@@ -46,7 +46,7 @@ bool Regex::search(const std::string& text) throw (RegexException){
 	return false;
 }
 bool Regex::search(const std::string& text, std::string::size_type &start,
-		std::string::size_type &end) throw (RegexException){
+		std::string::size_type &end) const throw (RegexException){
 	regmatch_t pmatch[1];
 	int error= regexec(&regex, text.c_str(), 1, pmatch, 0);
 	if(error){
@@ -59,16 +59,17 @@ bool Regex::search(const std::string& text, std::string::size_type &start,
 	end = pmatch[0].rm_eo;
 	return true;
 }
-Matcher Regex::getMatcher(std::string text){
+Matcher Regex::getMatcher(const std::string& text) const{
 	return Matcher(text, this->regex);
 }
 
-Matcher::Matcher (std::string text, regex_t regex){
+Matcher::Matcher (const std::string& text, const regex_t& regex){
 	this->text = text;
 	this->regex = regex;
 	numberOfGroups = regex.re_nsub + 1;
 	groups = (regmatch_t*)malloc(sizeof(regmatch_t)*numberOfGroups);
 	lastPosition = 0;
+	backPosition = 0;
 }
 Matcher::~Matcher (){
 	if(groups)
@@ -84,22 +85,23 @@ bool Matcher::find(){
 	}
 	return false;
 }
-std::string Matcher::getGroup(unsigned int number) const{
+std::string Matcher::getGroup(const unsigned int& number) const{
 	if(number >= numberOfGroups){
 		return "";
 	}
+
 	int n = groups[number].rm_eo - groups[number].rm_so;
 	return text.substr(backPosition + groups[number].rm_so, n);
 }
 
-RegexException::RegexException(std::string message){
+RegexException::RegexException(const std::string& message){
 	this->message = message;
 }
 RegexException::~RegexException() throw (){
 
 }
-std::string RegexException::what(){
-	return message;
+const char* RegexException::what() const throw (){
+	return message.c_str();
 }
 
 }
