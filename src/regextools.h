@@ -54,8 +54,8 @@ public:
 	Regex(const std::string& expression, const bool caseIgnor = false)
 			throw (RegexException);
 	virtual ~Regex();
-	bool search(const std::string& text, std::string::size_type &start,
-			std::string::size_type &end) const throw (RegexException);
+	bool search(const std::string& text, std::string::size_type &beginMatchPosition,
+			std::string::size_type &endMatchPosition) const throw (RegexException);
 	bool search(const std::string& text) const throw (RegexException);
 	Matcher getMatcher(const std::string& text) const;
 private:
