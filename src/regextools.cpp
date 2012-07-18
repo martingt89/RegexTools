@@ -21,15 +21,18 @@
 
 namespace RegexTools{
 
+static const int REGERROR_BUFFER_SIZE = 100;
+static const int REGEXEC_MATCH = 0;
+
 Regex::Regex(const std::string& expression, const bool caseIgnore) throw (RegexException){
 	int flags = 0;
 	if(caseIgnore){
-		flags |= REG_ICASE;
+		addIgnorCaseFlag(flags);
 	}
-	if (int st = regcomp(&regex, expression.c_str(), flags|REG_EXTENDED) != 0){
-		char buffer[100];
-		size_t len = regerror(st, &regex, buffer, 100);
-		throw RegexException(std::string("Regcomp error: ")+std::string(buffer, len)+", regex: "+expression);
+	addExtendedRegexFlag(flags);
+	if (int regcompReturnStatus = regcomp(&regex, expression.c_str(), flags) != 0){
+		std::string regcompErrorMessage = getRegexErrorMessage(regcompReturnStatus, regex);
+		throw RegexException(std::string("Regcomp error: ")+regcompErrorMessage+", regex expression: "+expression);
 	}
 }
 
@@ -38,35 +41,47 @@ Regex::~Regex() {
 }
 bool Regex::search(const std::string& text) const throw (RegexException){
 	std::string::size_type x, y;
-	try{
-		return this->search(text, x, y);
-	}catch(RegexException &ex){
-		throw ex;
-	}
-	return false;
+	return this->search(text, x, y);
 }
-bool Regex::search(const std::string& text, std::string::size_type &start,
-		std::string::size_type &end) const throw (RegexException){
+bool Regex::search(const std::string& text, 
+					std::string::size_type &beginMatchPosition,
+					std::string::size_type &endMatchPosition) const throw (RegexException){
 	regmatch_t pmatch[1];
-	int error= regexec(&regex, text.c_str(), 1, pmatch, 0);
-	if(error){
-		if(error == REG_NOMATCH) return false;
-		char buffer[100];
-		size_t len = regerror(error, &regex, buffer, 100);
-		throw RegexException("Regexec error: "+std::string(buffer, len));
+	int regexecReturnStatus = regexec(&regex, text.c_str(), 1, pmatch, 0);
+	
+	if(regexecReturnStatus != REGEXEC_MATCH){
+		if(regexecReturnStatus == REG_NOMATCH) return false;
+		std::string regexecErrorMessage = getRegexErrorMessage(regexecReturnStatus, regex);
+		throw RegexException("Regexec error: "+regexecErrorMessage);
 	}
-	start = pmatch[0].rm_so;
-	end = pmatch[0].rm_eo;
+	beginMatchPosition = pmatch[0].rm_so;
+	endMatchPosition = pmatch[0].rm_eo;
 	return true;
 }
+
 Matcher Regex::getMatcher(const std::string& text) const{
 	return Matcher(text, this->regex);
 }
 
+std::string Regex::getRegexErrorMessage(const int& errorStatus, const regex_t& regex) const{
+	char buffer[REGERROR_BUFFER_SIZE];
+	size_t messageLength = regerror(errorStatus, &regex, buffer, REGERROR_BUFFER_SIZE);
+	return std::string(buffer, messageLength);
+}
+
+void Regex::addIgnorCaseFlag(int& flags) {
+	flags |= REG_ICASE;
+}
+void Regex::addExtendedRegexFlag(int& flags) {
+	flags |= REG_EXTENDED;
+}
+
+//----------------------------Matcher------------------------------//
 Matcher::Matcher (const std::string& text, const regex_t& regex){
 	this->text = text;
 	this->regex = regex;
 	numberOfGroups = regex.re_nsub + 1;
+	groups = 0;
 	groups = (regmatch_t*)malloc(sizeof(regmatch_t)*numberOfGroups);
 	lastPosition = 0;
 	backPosition = 0;
@@ -76,30 +91,30 @@ Matcher::~Matcher (){
 		free(groups);
 }
 bool Matcher::find(){
-
-	int status= regexec(&regex, text.c_str()+lastPosition, numberOfGroups, groups, 0);
-	if(status == 0){
+	bool isMatch = false;
+	int status = regexec(&regex, text.c_str()+lastPosition, numberOfGroups, groups, 0);
+	if(status == REGEXEC_MATCH){
+		isMatch = true;
 		backPosition = lastPosition;
 		lastPosition = lastPosition + groups[0].rm_so+1;
-		return true;
 	}
-	return false;
+	return isMatch;
 }
-std::string Matcher::getGroup(const unsigned int& number) const{
-	if(number >= numberOfGroups){
-		return "";
+std::string Matcher::getGroup(const unsigned int& index) const throw (RegexException){
+	if(index >= numberOfGroups){
+		throw RegexException("Regexec error: group index is not valid");
 	}
 
-	int n = groups[number].rm_eo - groups[number].rm_so;
-	return text.substr(backPosition + groups[number].rm_so, n);
+	int groupTextLength = groups[index].rm_eo - groups[index].rm_so;
+	return text.substr(backPosition + groups[index].rm_so, groupTextLength);
 }
 
 RegexException::RegexException(const std::string& message){
 	this->message = message;
 }
 RegexException::~RegexException() throw (){
-
 }
+
 const char* RegexException::what() const throw (){
 	return message.c_str();
 }

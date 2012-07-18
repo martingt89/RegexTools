@@ -39,7 +39,7 @@ public:
 	Matcher (const std::string& text, const regex_t& regex);	//Don't use constructor manualy -> call RegexTools::getMatcher
 	~Matcher();
 	bool find();
-	std::string getGroup(const unsigned int& number) const;
+	std::string getGroup(const unsigned int& index) const throw (RegexException);
 private:
 	regex_t regex;
 	regmatch_t *groups;
@@ -59,6 +59,9 @@ public:
 	bool search(const std::string& text) const throw (RegexException);
 	Matcher getMatcher(const std::string& text) const;
 private:
+	void addIgnorCaseFlag(int& flags);
+	void addExtendedRegexFlag(int& flags);
+	std::string getRegexErrorMessage(const int& errorStatus, const regex_t& regex) const;
 	regex_t regex;
 	std::string text;
 };
