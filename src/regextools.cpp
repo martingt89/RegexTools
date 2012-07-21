@@ -64,7 +64,7 @@ Matcher Regex::getMatcher(const std::string& text) const{
 }
 
 std::string Regex::getRegexErrorMessage(const int& errorStatus, const regex_t& regex) const{
-	char buffer[REGERROR_BUFFER_SIZE];
+	char buffer[REGERROR_BUFFER_SIZE+1] = {0};
 	size_t messageLength = regerror(errorStatus, &regex, buffer, REGERROR_BUFFER_SIZE);
 	return std::string(buffer, messageLength);
 }
