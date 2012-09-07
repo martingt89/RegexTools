@@ -104,11 +104,32 @@ std::string Matcher::getGroup(const unsigned int& index) const throw (RegexExcep
 	if(index >= numberOfGroups){
 		throw RegexException("Regexec error: group index is not valid");
 	}
+	if(groups[index].rm_eo == -1 || groups[index].rm_so == -1){
+		throw RegexException("Regexec error: group not match");
+	}
+	int groupTextLength = groups[index].rm_eo - groups[index].rm_so;
+
+	std::string groupText = "";
+	try{
+		groupText = text.substr(backPosition + groups[index].rm_so, groupTextLength);
+	}catch(const std::exception& ex){
+		throw RegexException(std::string("Regexec error: ")+ex.what());
+	}
+	return groupText;
+}
+bool Matcher::getGroup(const unsigned int& index, std::string& groupText) const{
+	if(index >= numberOfGroups || groups[index].rm_eo == -1 || groups[index].rm_so == -1){
+		return false;
+	}
 
 	int groupTextLength = groups[index].rm_eo - groups[index].rm_so;
-	return text.substr(backPosition + groups[index].rm_so, groupTextLength);
+	try{
+		groupText = text.substr(backPosition + groups[index].rm_so, groupTextLength);
+	}catch(const std::exception& ex){
+		return false;
+	}
+	return true;
 }
-
 RegexException::RegexException(const std::string& message){
 	this->message = message;
 }
