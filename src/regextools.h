@@ -25,6 +25,8 @@
 
 namespace RegexTools{
 
+class Regex;
+
 class RegexException : std::exception{
 public:
 	RegexException(const std::string& message);
@@ -35,14 +37,14 @@ private:
 };
 
 class Matcher{
+	friend Regex;
 public:
-	//Don't use constructor manualy -> call RegexTools::getMatcher
-	Matcher (const std::string& text, const regex_t& regex);
 	~Matcher();
 	bool find();
 	std::string getGroup(const unsigned int& index) const throw (RegexException);
 	bool getGroup(const unsigned int& index, std::string& text) const;
 private:
+	Matcher (const std::string& text, const regex_t& regex);
 	regex_t regex;
 	regmatch_t *groups;
 	std::string text;
